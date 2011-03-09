@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+		<record model="ir.ui.view" id="email_template_menu_wizard_form">
+			<field name="name">email_template.menu.wizard.form</field>
+			<field name="model">email_template.menu.wizard</field>
+			<field name="type">form</field>
+			<field name="arch" type="xml" >
+			    <form string="Send mail wizard">
+			        <field name="template_id" domain="[('object_name','=', context.get('active_model'))]"/>
+			        <group colspan="2" col="2">
+			            <button special="cancel" string="Cancel" type="object"/>
+			            <button name="template_action" string="Next" 
+                            type="object" icon="gtk-go-forward"/>
+                    </group>
+                   
+			    </form>
+			</field>
+	    </record>
+	    
+	    
+        <act_window name="Send mail wizard"
+            res_model="email_template.menu.wizard"
+            src_model="res.partner"
+            view_mode="form"
+            target="new"
+            view_id="email_template_menu_wizard_form"
+            key2="client_action_multi"
+            id="email_template_menu_partner_act_window"
+            context="{'src_rec_id': active_id, 'src_rec_ids': active_ids}"
+        />
+        <act_window name="Send mail wizard"
+            res_model="email_template.menu.wizard"
+            src_model="crm.lead"
+            view_mode="form"
+            target="new"
+            view_id="email_template_menu_wizard_form"
+            key2="client_action_multi"
+            id="email_template_menu_lead_act_window"
+            context="{'src_rec_id': active_id, 'src_rec_ids': active_ids}"
+        />
+	</data>
+</openerp>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?> <openerp>
+    <data>
+        <record id="view_cards_tree" model="ir.ui.view">
+            <field name="name">danceville.cards.tree</field>
+            <field name="model">danceville.cards</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Cards">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record id="view_cards_form" model="ir.ui.view">
+            <field name="name">danceville.cards.form</field>
+            <field name="model">danceville.cards</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Card">
+                    <field name="name" select="1"/>
+                </form>
+            </field>
+        </record>
+        
+        <record id="action_cards" model="ir.actions.act_window">
+            <field name="name">Cards</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">danceville.cards</field>
+            <field name="view_type">form</field>
+        </record>
+        
+        
+        <menuitem action="action_cards" id="menu_cards" 
+parent="base.menu_base_config"/>
+	</data>
+</openerp>        

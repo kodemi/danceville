@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    
+       <record model="ir.ui.view" id="email_template_menu_form">
+            <field name="name">email_template_menu.form</field>
+            <field name="model">email.template</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="email_template.email_template_form"/>
+            <field name="priority" eval="15"/>
+            <field name="arch" type="xml">
+                <button name="create_action" position="replace">
+                    <button name="create_action" string="Create Action" type="object" icon="gtk-execute"  colspan="2" attrs="{'invisible':[('ref_ir_act_window','!=',False), ('ref_ir_value','!=',False)]}"/>
+                </button>
+            </field>
+        </record>
+        
+    </data>
+</openerp>
+
+
+
+
+

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<openerp>
+    <data>
+        <record id="view_danceville_partner_form" model="ir.ui.view">
+            <field name="name">res.partner.form.danceville</field>
+            <field name="model">res.partner</field>
+            <field name="type">form</field>
+	    <field name="priority" eval="15" />
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+				<data>
+					<field name="ref" position="replace" />
+					<field name="name" position="after">
+                                                        <field name="birthday" />
+							<field name="age" />
+                                                    <!--    <field name="lang" /> -->
+						<!--
+						<group colspan="2" col="1" string="Name">
+							<field name="surname" required="True"/>
+							<field name="firstname" />
+							<field name="patronymic" />
+						</group>
+						<newline/>
+						-->
+					</field>
+					<xpath expr="/form/notebook/page[@string='General']/field[@name='address']/form[@string='Partner Contacts']" position="inside">
+<!--
+							<field colspan="4" name="address" mode="form,tree" nolabel="1" select="1">
+							    <form string="Partner Contacts">
+							        <group colspan="1" col="1"> 	
+							        	<field name="country_id"/>
+							        	<field name="city" />
+								</group>
+							        <group colspan="3" col="4">
+									<field name="phone" />
+								        <field name="mobile"/>
+								        <field name="fax" />
+								        <field name="email" widget="email"/>
+									 <field name="vkontakte_id" />
+							           	 <field name="facebook_id" />
+							        </group>
+							    </form>
+                                                            <tree string="Partner Contacts">
+                                                                <field name="email" />
+                                                                <field name="mobile" />
+                                                                <field name="vkontakte_id" />
+                                                            </tree>
+							</field>
+							
+							<newline/>
+					
+							<group colspan="1" col="1">
+								<field name="is_head_of_school" />
+								<field name="is_trainer" />
+								<field name="is_dance_project" />
+							</group>
+							<group colspan="1" col="1">
+								<field name="dance_style" />
+								<field name="dance_collective" />
+								
+							</group>
+							
+						-->	
+									 <field name="vkontakte_id" />
+							           	 <field name="facebook_id" />
+					</xpath>
+				</data>
+            </field>
+        </record>
+	<!--	
+	<record id="view_partner_tree" model="ir.ui.view">
+            <field name="name">res.partner.tree.danceville_partner_tree</field>
+            <field name="model">res.partner</field>
+            <field name="type">tree</field>
+	    <field name="inherit_id" ref="base.view_partner_tree"/>
+            <field name="arch" type="xml">
+				<data>
+					<field name="title" position="replace" />
+					<field name="ref" position="replace" />
+					<xpath expr="/tree/field[@name='lang']" position="after">
+						<field name="is_dance_project" />
+						<field name="is_trainer" />
+						<field name="is_head_of_school" />
+					</xpath>
+				</data>
+			</field>
+	</record>
+-->
+
+<!-- Partner Address -->
+<!--
+	<record id="view_partner_address_form" model="ir.ui.view">
+	        <field name="name">res.partner.address.form.danceville_partner_form</field>
+	        <field name="model">res.partner.address</field>
+                <field name="type">form</field>
+                <field name="inherit_id" ref="base.view_partner_address_form1"/>
+                <field name="arch" type="xml">
+                                <data>
+					<field name="function" position="replace" />
+					<field name="name" position="replace" />
+					<field name="title" position="replace" />
+					<field name="email" position="after">
+						<field name="vkontakte_id" select="2" />
+						<field name="facebook_id" select="2"/>
+					</field>
+				</data>
+		</field>
+	</record>
+
+	<record id="view_partner_address_tree" model="ir.ui.view">
+                <field name="name">res.partner.address.tree.danceville_partner_tree</field>
+                <field name="model">res.partner.address</field>
+                <field name="type">tree</field>
+                <field name="inherit_id" ref="base.view_partner_address_tree"/>
+                <field name="arch" type="xml">
+                                <data>
+                                        <field name="name" position="replace" />
+					<field name="zip" position="replace" />
+					<field name="city" position="replace" />
+					<field name="country_id" position="replace" />
+                                        <xpath expr="/tree/field[@name='partner_id']" position="after">
+						<field name="vkontakte_id" />
+						<field name="email" />
+						<field name="country_id" select="2" />
+						<field name="city" />
+				        </xpath>
+                                </data>
+                </field>
+        </record>
+-->
+		
+    </data>
+</openerp>
