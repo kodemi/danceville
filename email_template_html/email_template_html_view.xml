@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>                                                                                                                                                                                                    
+    <openerp>                                                                            
+        <data>
+            <!--EMail client Form view  -->                                              
+            
+            <record model="ir.ui.view" id="email_template_html_form">                         
+                <field name="name">email.template.html.form</field>                                                                                                                                                                       
+                <field name="model">email.template</field>                               
+                <field name="type">form</field>                                          
+                <field name="inherit_id" ref="email_template.email_template_form"/>
+                <field name="arch" type="xml"> 
+                    <xpath expr="/form/notebook/page[@string='Mail Details']/group/notebook/page[@string='Body (Raw HTML)']" position="replace" >
+                        <page string="Body">
+                            <field name="def_body_html" colspan="4"
+                                nolabel="1" widget="text_html"/>
+                        </page>
+                    </xpath>
+                </field>
+            </record>
+        </data>
+    </openerp>
