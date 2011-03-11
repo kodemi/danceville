@@ -5,50 +5,29 @@
             <field name="name">res.partner.form.danceville</field>
             <field name="model">res.partner</field>
             <field name="type">form</field>
-	    <field name="priority" eval="15" />
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="arch" type="xml">
 				<data>
+					<field name="lang" position="replace" />
 					<field name="ref" position="replace" />
 					<field name="name" position="after">
-                                                        <field name="birthday" />
-							<field name="age" />
-                                                    <!--    <field name="lang" /> -->
-						<!--
-						<group colspan="2" col="1" string="Name">
-							<field name="surname" required="True"/>
-							<field name="firstname" />
-							<field name="patronymic" />
-						</group>
-						<newline/>
-						-->
-					</field>
-					<xpath expr="/form/notebook/page[@string='General']/field[@name='address']/form[@string='Partner Contacts']" position="inside">
-<!--
-							<field colspan="4" name="address" mode="form,tree" nolabel="1" select="1">
-							    <form string="Partner Contacts">
-							        <group colspan="1" col="1"> 	
-							        	<field name="country_id"/>
-							        	<field name="city" />
-								</group>
-							        <group colspan="3" col="4">
-									<field name="phone" />
-								        <field name="mobile"/>
-								        <field name="fax" />
-								        <field name="email" widget="email"/>
+                        <field name="birthday" />
+		            </field>
+                    <!--
+                    <field name="title" position="after">
+					    <field name="age" />
+                    </field>
+                    -->
+                    <xpath expr="/form/notebook/page[@string='General']/field[@name='address']/form[@string='Partner Contacts']/group/field[@name='email']" position="after">
+                            <!--
+                            -->
 									 <field name="vkontakte_id" />
 							           	 <field name="facebook_id" />
-							        </group>
-							    </form>
-                                                            <tree string="Partner Contacts">
-                                                                <field name="email" />
-                                                                <field name="mobile" />
-                                                                <field name="vkontakte_id" />
-                                                            </tree>
-							</field>
 							
-							<newline/>
-					
+		            </xpath>
+                    <xpath expr="/form/notebook/page[@string='History']"
+                        position="after">
+                        <page string="Other">
 							<group colspan="1" col="1">
 								<field name="is_head_of_school" />
 								<field name="is_trainer" />
@@ -59,11 +38,9 @@
 								<field name="dance_collective" />
 								
 							</group>
-							
-						-->	
-									 <field name="vkontakte_id" />
-							           	 <field name="facebook_id" />
-					</xpath>
+                        </page>
+                    </xpath>
+
 				</data>
             </field>
         </record>
