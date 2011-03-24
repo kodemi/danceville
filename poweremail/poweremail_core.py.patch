@@ -1,0 +1,153 @@
+*** poweremail_core.py	2011-03-24 17:51:50.912596999 +0300
+--- poweremail_core_patched.py	2011-03-24 18:12:13.864596999 +0300
+***************
+*** 44,49 ****
+--- 44,50 ----
+  import poweremail_engines
+  from tools.translate import _
+  import tools
++ import imap4utf7 # http://www.gitorious.com/trojita/trojita/blobs/fcf860f5c6b47004f3641174c62c5f6f9ec5170e/IMAP4UTF7.py
+  
+  class poweremail_core_accounts(osv.osv):
+      """
+***************
+*** 797,808 ****
+                          logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Server Connected & logged in successfully Account:%s.") % (id))
+                          #Select IMAP folder
+                          try:
+!                             typ, msg_count = serv.select('"%s"' % rec.isfolder)
+                          except imaplib.IMAP4.error, error:
+                              logger.notifyChannel(_("Power Email"), netsvc.LOG_ERROR, _("IMAP Server Folder Selection Error Account:%s Error:%s.") % (id, error))
+                              raise osv.except_osv(_('Power Email'), _('IMAP Server Folder Selection Error Account:%s Error:%s.\nCheck account settings if you have selected a folder.') % (id, error))
+                          logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Folder selected successfully Account:%s.") % (id))
+!                         logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Folder Statistics for Account:%s:%s") % (id, serv.status('"%s"' % rec.isfolder, '(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN)')[1][0]))
+                          #If there are newer mails than the ones in mailbox
+                          #print int(msg_count[0]),rec.last_mail_id
+                          if rec.last_mail_id < int(msg_count[0]):
+--- 798,813 ----
+                          logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Server Connected & logged in successfully Account:%s.") % (id))
+                          #Select IMAP folder
+                          try:
+!                             typ, msg_count = serv.select('"%s"' % rec.isfolder.encode('imap4-utf-7'))
+                          except imaplib.IMAP4.error, error:
+                              logger.notifyChannel(_("Power Email"), netsvc.LOG_ERROR, _("IMAP Server Folder Selection Error Account:%s Error:%s.") % (id, error))
+                              raise osv.except_osv(_('Power Email'), _('IMAP Server Folder Selection Error Account:%s Error:%s.\nCheck account settings if you have selected a folder.') % (id, error))
+                          logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Folder selected successfully Account:%s.") % (id))
+!                         # make IMAP folder name readable in log message
+!                         status = serv.status('"%s"' % rec.isfolder.encode('imap4-utf-7'), '(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN)')[1][0]
+!                         status = re.search(r'^(\".*\")(.*)', status).groups()
+!                         status = status[0].decode('imap4-utf-7') + status[1] 
+!                         logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Folder Statistics for Account:%s:%s") % (id, status))
+                          #If there are newer mails than the ones in mailbox
+                          #print int(msg_count[0]),rec.last_mail_id
+                          if rec.last_mail_id < int(msg_count[0]):
+***************
+*** 932,938 ****
+                                  ) % (id))
+                      #Select IMAP folder
+                      try:
+!                         typ, msg_count = serv.select('"%s"' % rec.isfolder)#typ,msg_count: practically not used here
+                      except imaplib.IMAP4.error, error:
+                          logger.notifyChannel(
+                                  _("Power Email"),
+--- 937,943 ----
+                                  ) % (id))
+                      #Select IMAP folder
+                      try:
+!                         typ, msg_count = serv.select('"%s"' % rec.isfolder.encode('imap4-utf-7'))#typ,msg_count: practically not used here
+                      except imaplib.IMAP4.error, error:
+                          logger.notifyChannel(
+                                  _("Power Email"),
+***************
+*** 947,964 ****
+                                  _(
+                        "IMAP Folder selected successfully Account:%s."
+                                    ) % (id))
+!                     logger.notifyChannel(
+!                                 _("Power Email"),
+!                                 netsvc.LOG_INFO,
+!                                 _(
+!                       "IMAP Folder Statistics for Account:%s:%s"
+!                                   ) % (
+!                            id,
+!                            serv.status(
+!                                 '"%s"' % rec.isfolder,
+!                                 '(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN)'
+!                                 )[1][0])
+!                                   )
+                      #If there are newer mails than the ones in mailbox
+                      typ, msg = serv.fetch(str(server_ref), '(FLAGS RFC822)')
+                      for i in range(0, len(msg) / 2):
+--- 952,962 ----
+                                  _(
+                        "IMAP Folder selected successfully Account:%s."
+                                    ) % (id))
+!                     # make IMAP folder name readable in log message
+!                     status = serv.status('"%s"' % rec.isfolder.encode('imap4-utf-7'), '(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN)')[1][0]
+!                     status = re.search(r'^(\".*\")(.*)', status).groups()
+!                     status = status[0].decode('imap4-utf-7') + status[1]  
+!                     logger.notifyChannel(_("Power Email"), netsvc.LOG_INFO, _("IMAP Folder Statistics for Account:%s:%s") % (id, status))
+                      #If there are newer mails than the ones in mailbox
+                      typ, msg = serv.fetch(str(server_ref), '(FLAGS RFC822)')
+                      for i in range(0, len(msg) / 2):
+***************
+*** 1102,1119 ****
+              #If a parent and child exists, format it as parent/child/grandchild
+              if len(splitname) > 1:
+                  for i in range(0, len(splitname) - 1):
+!                     folder_readable_name = splitname[i] + '/'
+!                 folder_readable_name = folder_readable_name + splitname[-1]
+              else:
+!                 folder_readable_name = result.groups()[1].split(seperator)[0]
+!             return folder_readable_name
+          return False
+  
+      def _get_folders(self, cr, uid, context=None):
+!         if 'active_ids' in context.keys():
+              record = self.pool.get(
+                          'poweremail.core_accounts'
+!                         ).browse(cr, uid, context['active_ids'][0], context)
+              if record:
+                  folderlist = []
+                  try:
+--- 1100,1117 ----
+              #If a parent and child exists, format it as parent/child/grandchild
+              if len(splitname) > 1:
+                  for i in range(0, len(splitname) - 1):
+!                     folder_readable_name = splitname[i].decode('imap4-utf-7') + '/'
+!                 folder_readable_name = folder_readable_name + splitname[-1].decode('imap4-utf-7')
+              else:
+!                 folder_readable_name = result.groups()[1].split(seperator)[0].decode('imap4-utf-7')
+!             return unicode(folder_readable_name)
+          return False
+  
+      def _get_folders(self, cr, uid, context=None):
+!         if 'account_id' in context.keys(): # Question #150273
+              record = self.pool.get(
+                          'poweremail.core_accounts'
+!                         ).browse(cr, uid, context['account_id'], context) # Question #150273
+              if record:
+                  folderlist = []
+                  try:
+***************
+*** 1171,1179 ****
+                          _get_folders,
+                          string="IMAP Folder"),
+      }
+! 
+      _defaults = {
+!         'name':lambda self, cr, uid, ctx: ctx['active_ids'][0],
+          'folder': lambda self, cr, uid, ctx:self.inboxvalue
+      }
+  
+--- 1169,1178 ----
+                          _get_folders,
+                          string="IMAP Folder"),
+      }
+!     
+!     inboxvalue = '' # Bug #741495
+      _defaults = {
+!         'name':lambda self, cr, uid, ctx: ctx['account_id'], # Question #150273
+          'folder': lambda self, cr, uid, ctx:self.inboxvalue
+      }
+  
