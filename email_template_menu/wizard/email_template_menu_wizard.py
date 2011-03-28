@@ -31,7 +31,6 @@ class email_template_menu_wizard(osv.osv_memory):
 
 
     def template_action(self, cursor, user, ids, context=None):
-        logging.info(context)
         template_id = self.browse(cursor, user, ids, context=context)[0].template_id.id
         template_obj = self.pool.get('email.template').browse(cursor, user, template_id, context=context)
         action_id = template_obj.ref_ir_act_window.id
