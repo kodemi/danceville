@@ -755,7 +755,7 @@ class poweremail_core_accounts(osv.osv):
             new_att_vals = {
                         'name':self.decode_header_text(mail['subject']) + '(' + each[0] + ')',
                         'datas':base64.b64encode(each[2] or ''),
-                        'datas_fname':each[1],
+                        'datas_fname':self.decode_header_text(each[1]),
                         'description':(self.decode_header_text(mail['subject']) or _('No Subject')) + " [Type:" + (each[0] or 'Unknown') + ", Filename:" + (each[1] or 'No Name') + "]",
                         'res_model':'poweremail.mailbox',
                         'res_id':id
