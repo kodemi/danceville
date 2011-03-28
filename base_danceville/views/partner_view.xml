@@ -44,17 +44,18 @@
 				</data>
             </field>
         </record>
-	<!--	
+	
 	<record id="view_partner_tree" model="ir.ui.view">
-            <field name="name">res.partner.tree.danceville_partner_tree</field>
+            <field name="name">res.partner.tree.danceville</field>
             <field name="model">res.partner</field>
             <field name="type">tree</field>
 	    <field name="inherit_id" ref="base.view_partner_tree"/>
             <field name="arch" type="xml">
 				<data>
-					<field name="title" position="replace" />
+					
 					<field name="ref" position="replace" />
-					<xpath expr="/tree/field[@name='lang']" position="after">
+					<field name="phone" position="replace" />
+					<xpath expr="/tree/field[@name='city']" position="before">
 						<field name="is_dance_project" />
 						<field name="is_trainer" />
 						<field name="is_head_of_school" />
@@ -62,17 +63,17 @@
 				</data>
 			</field>
 	</record>
--->
+
 
 <!-- Partner Address -->
-<!--
+
 	<record id="view_partner_address_form" model="ir.ui.view">
-	        <field name="name">res.partner.address.form.danceville_partner_form</field>
+	        <field name="name">res.partner.address.form.danceville</field>
 	        <field name="model">res.partner.address</field>
                 <field name="type">form</field>
                 <field name="inherit_id" ref="base.view_partner_address_form1"/>
                 <field name="arch" type="xml">
-                                <data>
+                <data>
 					<field name="function" position="replace" />
 					<field name="name" position="replace" />
 					<field name="title" position="replace" />
@@ -85,26 +86,30 @@
 	</record>
 
 	<record id="view_partner_address_tree" model="ir.ui.view">
-                <field name="name">res.partner.address.tree.danceville_partner_tree</field>
+                <field name="name">res.partner.address.tree.danceville</field>
                 <field name="model">res.partner.address</field>
                 <field name="type">tree</field>
                 <field name="inherit_id" ref="base.view_partner_address_tree"/>
                 <field name="arch" type="xml">
-                                <data>
-                                        <field name="name" position="replace" />
+                <data>
+                    <!--<field name="name" position="replace" />-->
 					<field name="zip" position="replace" />
-					<field name="city" position="replace" />
-					<field name="country_id" position="replace" />
-                                        <xpath expr="/tree/field[@name='partner_id']" position="after">
-						<field name="vkontakte_id" />
+					<field name="type" position="replace" />
+					<field name="phone" position="replace">
+					    <field name="mobile" />
+					    <field name="vkontakte_id" />
+					</field>
+					<!--<field name="city" position="replace" />
+					<field name="country_id" position="replace" />-->
+                    <!--<xpath expr="/tree/field[@name='partner_id']" position="after">
+						
 						<field name="email" />
 						<field name="country_id" select="2" />
 						<field name="city" />
-				        </xpath>
-                                </data>
+				    </xpath>-->
+                </data>
                 </field>
         </record>
--->
-		
+	
     </data>
 </openerp>
