@@ -5,7 +5,7 @@ from rpc_proxy import rpc_proxy
 import cPickle as pickle
 
 #rrpc = rpc_proxy(1,'URcfhhu5',host='danceville.dyndns-office.com',dbname='danceville')
-lrpc = rpc_proxy(1,'admin',host='localhost',dbname='test')
+lrpc = rpc_proxy(1,'aNM9PPbg',host='localhost',dbname='danceville')
 pf = open("partners")
 partners = []
 

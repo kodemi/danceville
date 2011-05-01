@@ -11,8 +11,8 @@
 					<field name="lang" position="replace" />
 					<field name="ref" position="replace" />
 					<field name="name" position="after">
-                        <field name="birthday" />
-		            </field>
+                        			<field name="birthday" />
+		            		</field>
                     <!--
                     <field name="title" position="after">
 					    <field name="age" />

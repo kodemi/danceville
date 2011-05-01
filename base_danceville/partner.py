@@ -24,8 +24,11 @@ class res_partner_address(osv.osv):
     def _compose_name(self, cr, uid, ids, field_name, arg, context):
         address = self.browse(cr, uid, ids[0], context=context)
         partner = self.pool.get("res.partner")
-        partner_id = partner.search(cr, uid, [('id', '=', address.partner_id.id)])[0] 
-        partner_name = partner.browse(cr, uid, partner_id).name
+        partner_id = partner.search(cr, uid, [('id', '=', address.partner_id.id)]) 
+	if not partner_id:
+	    return False	
+	partner_id = partner_id[0]
+       	partner_name = partner.browse(cr, uid, partner_id).name
         result = { ids[0]: partner_name }
         return result
  
@@ -62,6 +65,7 @@ class res_partner(osv.osv):
         result = {}
         for id in ids:
             partner = self.browse(cr, uid, id, context=context)
+	    """
             joinlist = []
             partnername = (partner.surname, partner.firstname, partner.middlename)
             for part in partnername:
@@ -70,6 +74,8 @@ class res_partner(osv.osv):
             name = ' '.join(joinlist)
             if not name:
                 name = partner.name   
+            """
+            name = ' '.join(partner.name.split())
             result[id] = name
         return result
 
@@ -84,21 +90,16 @@ class res_partner(osv.osv):
                 age = 0
             result[id] = age
         return result 
-
-    """   
+    """
     def write(self, cr, uid, ids, vals, context=None):
-        if 'surname' in vals and vals['surname']:
-            vals['surname'] = vals['surname'].strip().capitalize()
-        if 'firstname' in vals and vals['firstname']:
-            vals['firstname'] = vals['firstname'].strip().capitalize()
-        if 'middlename' in vals and vals['middlename']:
-            vals['middlename'] = vals['middlename'].strip().capitalize()
+        if 'name' in vals:
+            vals['name'] = ' '.join(vals['name'].strip()).capitalize().encode('utf-8')
+            print vals['name']
         return super(res_partner, self).write(cr, uid, ids, vals, context=context)
     """
     _name = 'res.partner'
     _inherit = 'res.partner'
     _columns = {
-        
         #'firstname': fields.char('First name', size=64, required=False),
         #'surname': fields.char('Surname', size=64, required=False),        
         #'patronymic': fields.char('Patronymic', size=64, required=False),
