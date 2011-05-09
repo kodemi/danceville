@@ -4,6 +4,8 @@
 from osv import fields,osv
 import netsvc
 import datetime
+import hashlib
+import logging
 
 logger = netsvc.Logger()
 
@@ -25,13 +27,13 @@ class res_partner_address(osv.osv):
         address = self.browse(cr, uid, ids[0], context=context)
         partner = self.pool.get("res.partner")
         partner_id = partner.search(cr, uid, [('id', '=', address.partner_id.id)]) 
-	if not partner_id:
-	    return False	
-	partner_id = partner_id[0]
-       	partner_name = partner.browse(cr, uid, partner_id).name
+        if not partner_id:
+            return False
+        partner_id = partner_id[0]
+        partner_name = partner.browse(cr, uid, partner_id).name
         result = { ids[0]: partner_name }
         return result
- 
+
     _columns = {
         'name': fields.function(
             _compose_name,
@@ -51,9 +53,11 @@ res_partner_address()
 
 
 class res_partner(osv.osv):
-    
+
     def unlink(self, cr, uid, ids, context=None):
         address = self.pool.get('res.partner.address')
+        if not hasattr(ids, '__iter__'):
+            ids = [ids]
         for id in ids:
             partner = self.browse(cr, uid, id, context=context)
             addrs_ids = address.search(cr, uid, [('partner_id', '=', id)]) 
@@ -65,7 +69,7 @@ class res_partner(osv.osv):
         result = {}
         for id in ids:
             partner = self.browse(cr, uid, id, context=context)
-	    """
+            """
             joinlist = []
             partnername = (partner.surname, partner.firstname, partner.middlename)
             for part in partnername:
@@ -90,13 +94,39 @@ class res_partner(osv.osv):
                 age = 0
             result[id] = age
         return result 
-    """
+    
     def write(self, cr, uid, ids, vals, context=None):
         if 'name' in vals:
-            vals['name'] = ' '.join(vals['name'].strip()).capitalize().encode('utf-8')
-            print vals['name']
+            vals['name'] = u' '.join([part.capitalize() for part in vals['name'].decode('utf-8').split()])
         return super(res_partner, self).write(cr, uid, ids, vals, context=context)
-    """
+
+    def calculate_hash(self, cr, uid, ids, context=None):
+        partners = self.browse(cr, uid, ids, context=context)
+        result = []
+        for partner in partners:
+            email = partner.email
+            name = partner.name
+            hash_str = u"{0} {1}".format(name, email).encode('utf-8')
+            result.append((partner.id, hashlib.sha1(hash_str).hexdigest()))
+        return result
+
+    def _calculate_hash(self, cr, uid, ids, field_name, arg, context=None):
+        result = {}
+        for id in ids:
+            result[id] = self.calculate_hash(cr, uid, [id], context)[0][1]
+        return result
+
+    def unsubscribe(self, cr, uid, ids, context=None):
+        if not hasattr(ids, '__iter__'):
+            ids = [ids]
+        for partner_id in ids:
+            partner_obj = self.browse(cr, uid, partner_id)
+            if not partner_obj.category_id:
+                self.unlink(cr, uid, partner_id)
+            else:
+                self.write(cr, uid, ids, {'is_subscriber': False})
+        return True
+
     _name = 'res.partner'
     _inherit = 'res.partner'
     _columns = {
@@ -113,11 +143,18 @@ class res_partner(osv.osv):
             _calculate_age,
             type='integer',
             method=True,
-			store=True,
+            store=True,
             string='Age',
-			select=2),
-        
+            select=2),
+        'hash': fields.function(
+            _calculate_hash,
+            type='char',
+            size=40,
+            method=True,
+            store=True),
+        'is_subscriber': fields.boolean('Subscribe to mails'),
     }
-     
-        
+    _defaults = {
+        'is_subscriber': lambda *a: True,
+    }
 res_partner()

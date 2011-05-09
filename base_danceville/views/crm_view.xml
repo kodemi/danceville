@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<openerp>
+    <data>
+        <record id="view_danceville_lead_form" model="ir.ui.view">
+            <field name="name">crm.lead.form.danceville</field>
+            <field name="model">crm.lead</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_leads"/>
+            <field name="arch" type="xml">
+	            <data>
+		            <field name="mobile" position="after">
+		                <field name="vkontakte_id"/>
+			            <field name="facebook_id"/>
+	                </field>
+		            <separator string="Links" position="before">
+			            <separator string="Other" colspan="4" col="3"/>
+			            <field name="dance_collective"/>
+			            <field name="birthday"/>
+			            
+		            </separator>
+	            </data>
+	        </field>
+	    </record>
+	</data>
+</openerp>
