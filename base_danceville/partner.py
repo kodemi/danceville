@@ -100,14 +100,17 @@ class res_partner(osv.osv):
             vals['name'] = u' '.join([part.capitalize() for part in vals['name'].decode('utf-8').split()])
         return super(res_partner, self).write(cr, uid, ids, vals, context=context)
 
+    def hash(self, cr, uid, name, email, context=None):
+        hash_str = u"{0} {1}".format(name, email).encode('utf-8')
+        return hashlib.sha1(hash_str).hexdigest()
+
     def calculate_hash(self, cr, uid, ids, context=None):
         partners = self.browse(cr, uid, ids, context=context)
         result = []
         for partner in partners:
             email = partner.email
             name = partner.name
-            hash_str = u"{0} {1}".format(name, email).encode('utf-8')
-            result.append((partner.id, hashlib.sha1(hash_str).hexdigest()))
+            result.append((partner.id, self.hash(cr, uid, name, email)))
         return result
 
     def _calculate_hash(self, cr, uid, ids, field_name, arg, context=None):

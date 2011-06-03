@@ -1,6 +1,7 @@
 from osv import osv, fields
 from tools.translate import _
 import time
+import logging
 
 
 class email_template_send_wizard(osv.osv_memory):
@@ -8,8 +9,18 @@ class email_template_send_wizard(osv.osv_memory):
     _inherit = 'email_template.send.wizard'
 
     def save_to_mailbox(self, cr, uid, ids, context=None):
+
+        def get_end_value(id, value):
+            if len(context['src_rec_ids']) > 1: # Multiple Mail: Gets value from the template
+                return super(email_template_send_wizard, self).get_value(cr, uid, template, value, context, id)
+            else:
+                return value
+        
         template = self._get_template(cr, uid, context)
         screen_vals = self.read(cr, uid, ids[0], [],context)
+        ids = [i for i in ids if get_end_value(i, screen_vals['to']) != 'False']
+        if not ids:
+            return
         mail_ids = super(email_template_send_wizard, self).save_to_mailbox(cr, uid, ids, context)
         mail_objs = self.pool.get('email_template.mailbox').read(cr, uid, mail_ids)
         for idx, mail_obj in enumerate(mail_objs):
