@@ -100,7 +100,7 @@ def create_lead(message, rpc):
             else:
                 lead[fieldname] = value
     if not lead:
-        return False, False
+        return False, '???'
     lead['partner_name'] = ' '.join([lead.pop('surname'), lead.pop('firstname'), lead.pop('middlename')])
     lead['name'] = '[Регистрация] %s' % lead['partner_name']
     lead['country_id'] = lead.pop('country')
@@ -135,7 +135,7 @@ def create_opportunity(message, rpc):
             fieldname = tmp[0].strip()
             logger.warning("Invalid field: %s -> %s (%s)" % (fieldname, ''.join(tmp[1:]).strip(), name))
     if not partner:
-        return False, False
+        return False, '???'
     for field in ['surname', 'firstname', 'middlename']:
         partner[field] = partner[field].replace('ё','е').replace('Ё', 'Е').decode('utf8').capitalize()
     partner['name'] = ' '.join([partner.pop('surname'), partner.pop('firstname'), partner.pop('middlename')])
@@ -148,6 +148,31 @@ def create_opportunity(message, rpc):
         return opp_id, partner['name']
     else:
         return False, partner['name']
+
+def create_prepaid(message, rpc):
+    partner = {}
+    for line in message:
+        tmp = line.split(':')
+        if tmp[0].strip() not in ['surname', 'firstname', 'middlename',
+                                  'email', 'bank', 'payment_number',
+                                  'sum', 'date_arrival', 'qr-code_pass_id', '\n', '']:
+            logger.error("Invalid request")
+            return False, '???'
+        if len(tmp) == 2:
+            partner[tmp[0].strip()] = tmp[1].strip()
+        elif len(tmp) == 3:
+            try:
+                name = ' '.join([lead['surname'], lead['firstname'], lead['middlename']])
+            except Exception:
+                name = '???'
+            fieldname = tmp[0].strip()
+            logger.warning("Invalid field: %s -> %s (%s)" % (fieldname, ''.join(tmp[1:]).strip(), name))
+    if not partner:
+        return False, '???'
+    for field in ['surname', 'firstname', 'middlename']:
+        partner[field] = partner[field].replace('ё','е').replace('Ё', 'Е').decode('utf8').capitalize()
+    partner['name'] = ' '.join([partner.pop('surname'), partner.pop('firstname'), partner.pop('middlename')])
+    return False, '???'
 
 if __name__ == '__main__':
     import sys, optparse
