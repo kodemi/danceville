@@ -37,7 +37,7 @@ MAIL_PORT = '993'
 MAIL_LOGIN = 'registration@danceville.ru'
 MAIL_PASSWORD = '44G5P4g1'
 NEW_REQUEST_MAILBOX = 'test1' #'new_requests'
-FINISHED_REQUEST_MAILBOX = 'test2' #'finished_requests'
+FINISHED_REQUEST_MAILBOX = 'finished_requests'
 FAILED_REQUEST_MAILBOX = 'failed_requests'
 PARTNER_CATEGORY = u'dw_w11'
 PARTNER_CATEGORY2 = u'unpaid'
@@ -52,25 +52,23 @@ class rpc_proxy(object):
     def __call__(self, *request):
         return self.rpc.execute(self.dbname, self.user_id, self.passwd, *request)
 
-def parse_email(msg, options):
-    rpc = rpc_proxy(options.userid, options.password, host=options.host, dbname=options.dbname)
-    subj = decode_header(msg['subject'])[0][0].decode('utf8')
+def parse_email(msg, msg_type, rpc):
     message = msg.get_payload(None, True)
     if not message:
         logger.error("Invalid request")
         return False, '???'
     message = message.split('\n')
-    if subj == u'Регистрация':
+    if msg_type == u'Регистрация':
         id, name = create_lead(message, rpc)
         return id, name
-    elif subj == u'Заявка':
-        create_request(message, rpc)
-        return False, False
-    elif subj == u'Предоплата':
+    elif msg_type == u'Заявка':
+        id, name = create_opportunity(message, rpc)
+        return id, name
+    elif msg_type == u'Предоплата':
         create_prepaid(message, rpc)
-        return False, False
+        return False, '???'
     else:
-        raise Exception
+        return False, '???'
     
 def create_lead(message, rpc):
     lead = {}
@@ -119,7 +117,7 @@ def create_lead(message, rpc):
         logger.error(e)
     return id, lead['name']
 
-def create_request(message, rpc):
+def create_opportunity(message, rpc):
     partner = {}
     for line in message:
         tmp = line.split(':')
@@ -140,11 +138,16 @@ def create_request(message, rpc):
         return False, False
     for field in ['surname', 'firstname', 'middlename']:
         partner[field] = partner[field].replace('ё','е').replace('Ё', 'Е').decode('utf8').capitalize()
-    partner['name'] = ' '.join([lead.pop('surname'), lead.pop('firstname'), lead.pop('middlename')])
-    partner_hash = rpc('res.partner', 'hash', partner['name'], partner['email'])
-    partner_id = rpc('res.partner', 'search', [('hash', '=', partner_hash)])
-    partner_id = partner_id and partner_id[0]
-
+    partner['name'] = ' '.join([partner.pop('surname'), partner.pop('firstname'), partner.pop('middlename')])
+    #partner_hash = rpc('res.partner', 'hash', partner['name'], partner['email'])
+    #partner_id = rpc('res.partner', 'search', [('hash', '=', partner_hash)])
+    #partner_id = partner_id and partner_id[0]
+    lead_id = rpc('crm.lead', 'search', [('partner_name', '=', partner['name']), ('email_from', 'ilike', partner['email'])])
+    if lead_id:
+        opp_id = rpc('crm.lead', 'lead2opportunity', lead_id, partner['card'])
+        return opp_id, partner['name']
+    else:
+        return False, partner['name']
 
 if __name__ == '__main__':
     import sys, optparse
@@ -164,6 +167,7 @@ if __name__ == '__main__':
     #parser.add_option("-l", dest="logfile", help="Name of the log file", default="/var/log/openerp-mailgate.log")
 
     (options, args) = parser.parse_args()
+    rpc = rpc_proxy(options.userid, options.password, host=options.host, dbname=options.dbname)
 
     logger = logging.getLogger('mailgate')
     logger.setLevel(logging.DEBUG)
@@ -176,28 +180,33 @@ if __name__ == '__main__':
     box = imaplib.IMAP4_SSL(MAIL_SERVER,MAIL_PORT)
     box.login(MAIL_LOGIN, MAIL_PASSWORD)
     box.select(NEW_REQUEST_MAILBOX)
-    typ, [msg_ids] = box.search(None, 'ALL')
-    msg_ids = ','.join(msg_ids.split(' '))
-    failed = []
+    #typ, [msg_ids] = box.search(None, 'ALL')
     finished_msg_ids = []
     failed_msg_ids = []
-    for msg_id in msg_ids.split(','):
-        if not msg_id:
-            continue
-        typ, data = box.fetch(msg_id, '(RFC822)')
-        msg_txt = email.message_from_string(data[0][1])
-        response, name = parse_email(msg_txt, options)
-        if not response:
-            logger.error("Request failed (%s)" % name)
-            failed.append(name)
-        elif response is True:
-            logger.info("Request sucessfully processed. Partner updated (%s)" % name)
-        else:
-            logger.info("Request sucessfully processed. Partner added (%s)" % name)
-        if not response:
-            failed_msg_ids.append(msg_id)
-        else:
-            finished_msg_ids.append(msg_id)
+    failed = []
+    all_msg_ids = []
+    for msg_type in (u'Регистрация', u'Заявка', u'Предоплата'):
+        logger.info(msg_type)
+        typ, [msg_ids] = box.search('utf-8', '(SUBJECT %s)' % msg_type.encode('utf-8'))
+        msg_ids = msg_ids.split(' ')
+        all_msg_ids.extend(msg_ids)
+        for msg_id in msg_ids:
+            if not msg_id:
+                continue
+            typ, data = box.fetch(msg_id, '(RFC822)')
+            msg_txt = email.message_from_string(data[0][1])
+            response, name = parse_email(msg_txt, msg_type, rpc)
+            if not response:
+                logger.error("Request failed (%s)" % name)
+                failed.append(name)
+            elif response is True:
+                logger.info("Request sucessfully processed. Partner updated (%s)" % name)
+            else:
+                logger.info("Request sucessfully processed. Partner added (%s)" % name)
+            if not response:
+                failed_msg_ids.append(msg_id)
+            else:
+                finished_msg_ids.append(msg_id)
     failed_msg_ids = ','.join(failed_msg_ids)
     finished_msg_ids = ','.join(finished_msg_ids)
     if finished_msg_ids:
@@ -207,7 +216,7 @@ if __name__ == '__main__':
         box.copy(failed_msg_ids, FAILED_REQUEST_MAILBOX)
     #    typ, response = box.store(failed_msg_ids, '+FLAGS', r'(\Deleted)')
     if msg_ids:
-        typ, response = box.store(msg_ids, '+FLAGS', r'(\Deleted)')
+        typ, response = box.store(','.join(all_msg_ids), '+FLAGS', r'(\Deleted)')
         typ, response = box.expunge()
     box.close()
     box.logout()
